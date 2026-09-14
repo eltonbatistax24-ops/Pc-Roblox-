@@ -58,8 +58,14 @@ jobs:
         
     - name: Start Tailscale
       run: |
+        $authKey = "${{ secrets.TAILSCALE_AUTH_KEY }}"
+        if ([string]::IsNullOrWhiteSpace($authKey)) {
+            Write-Host "Error: O secret TAILSCALE_AUTH_KEY não está configurado no GitHub Actions!" -ForegroundColor Red
+            Write-Host "Vá em Settings > Secrets and variables > Actions e adicione o secret TAILSCALE_AUTH_KEY." -ForegroundColor Yellow
+            exit 1
+        }
         Write-Host "Starting Tailscale..." -ForegroundColor Green
-        & "C:\Program Files\Tailscale\tailscale.exe" up --authkey ${{ secrets.TAILSCALE_AUTH_KEY }} --hostname "enigmano-${{ github.run_id }}"
+        & "C:\Program Files\Tailscale\tailscale.exe" up --authkey "$authKey" --hostname "enigmano-${{ github.run_id }}"
         Start-Sleep -Seconds 15
         
     - name: Get Tailscale IP
@@ -124,8 +130,9 @@ jobs:
             Write-Host "Tailscale status: ACTIVE" -ForegroundColor Green
           } else {
             Write-Host "Tailscale status: ERROR - Restarting..." -ForegroundColor Red
-            & "C:\Program Files\Tailscale\tailscale.exe" up --authkey ${{ secrets.TAILSCALE_AUTH_KEY }} --hostname "enigmano-${{ github.run_id }}"
+            & "C:\Program Files\Tailscale\tailscale.exe" up --authkey "${{ secrets.TAILSCALE_AUTH_KEY }}" --hostname "enigmano-${{ github.run_id }}"
           }
           
           Start-Sleep -Seconds 60
         }
+        
